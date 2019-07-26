@@ -4,7 +4,7 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <StackLayout>
+    <StackLayout Padding="20">
 
         <ListView x:Name="MyListView">
             <ListView.ItemTemplate>
@@ -17,16 +17,18 @@
             <Button
                 BackgroundColor="Khaki"
                 Clicked="OnAdd"
-                Text="Add" />
+                Text="Add"
+                HorizontalOptions="FillAndExpand" />
             <Button
                 BackgroundColor="MediumPurple"
                 Clicked="OnUpdate"
-                HorizontalOptions="CenterAndExpand"
-                Text="Update" />
+                Text="Update"
+                HorizontalOptions="FillAndExpand" />
             <Button
                 BackgroundColor="Crimson"
                 Clicked="OnDelete"
-                Text="Delete" />
+                Text="Delete"
+                HorizontalOptions="FillAndExpand" />
         </StackLayout>
 
     </StackLayout>
