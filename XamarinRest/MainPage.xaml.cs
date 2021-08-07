@@ -30,29 +30,28 @@ namespace XamarinRest
         /// </summary>
         protected override async void OnAppearing()
         {
-            // try
-            // {
-            //     var content = await _client.GetStringAsync(Url); //Sends a GET request to the specified Uri and returns the response body as a string in an asynchronous operation
-            //     var deserializedPosts = JsonConvert.DeserializeObject<List<Post>>(content); //Deserializes or converts JSON String into a collection of Post
-            //     _posts = new ObservableCollection<Post>(deserializedPosts); //Converting the List to ObservableCollection of Post
-            //     MyListView.ItemsSource = _posts; //Assigning the ObservableCollection to MyListView in the XAML of this file
-            // }
-            // catch (Exception e)
-            // {
-            //     Console.WriteLine(e);
-            //     throw;
-            // }
-            
-           /*
-           * Using the new SYSTEM.NET.HTTP.JSON
-           */
-            var response = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Get, Url)); 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var posts =  await response.Content.ReadFromJsonAsync<List<Post>>();
-                _posts = new ObservableCollection<Post>(posts); 
-                MyListView.ItemsSource = _posts;
+                var content = await _client.GetStringAsync(Url); //Sends a GET request to the specified Uri and returns the response body as a string in an asynchronous operation
+                var deserializedPosts = JsonConvert.DeserializeObject<List<Post>>(content); //Deserializes or converts JSON String into a collection of Post
+                _posts = new ObservableCollection<Post>(deserializedPosts); //Converting the List to ObservableCollection of Post
+                MyListView.ItemsSource = _posts; //Assigning the ObservableCollection to MyListView in the XAML of this file
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            } 
+            /*
+             * * Using the new SYSTEM.NET.HTTP.JSON
+             * */
+            // var response = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Get, Url)); 
+            // if (response.IsSuccessStatusCode)
+            // {
+            //     var posts =  await response.Content.ReadFromJsonAsync<List<Post>>();
+            //     _posts = new ObservableCollection<Post>(posts); 
+            //     MyListView.ItemsSource = _posts;
+            // }
             
             base.OnAppearing();
         }
