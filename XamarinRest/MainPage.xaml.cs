@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Xamarin.Forms;
 
@@ -31,10 +30,30 @@ namespace XamarinRest
         /// </summary>
         protected override async void OnAppearing()
         {
-            string content = await _client.GetStringAsync(Url); //Sends a GET request to the specified Uri and returns the response body as a string in an asynchronous operation
-            List<Post> posts = JsonConvert.DeserializeObject<List<Post>>(content); //Deserializes or converts JSON String into a collection of Post
-            _posts = new ObservableCollection<Post>(posts); //Converting the List to ObservalbleCollection of Post
-            MyListView.ItemsSource = _posts; //Assigning the ObservableCollection to MyListView in the XAML of this file
+            // try
+            // {
+            //     var content = await _client.GetStringAsync(Url); //Sends a GET request to the specified Uri and returns the response body as a string in an asynchronous operation
+            //     var deserializedPosts = JsonConvert.DeserializeObject<List<Post>>(content); //Deserializes or converts JSON String into a collection of Post
+            //     _posts = new ObservableCollection<Post>(deserializedPosts); //Converting the List to ObservableCollection of Post
+            //     MyListView.ItemsSource = _posts; //Assigning the ObservableCollection to MyListView in the XAML of this file
+            // }
+            // catch (Exception e)
+            // {
+            //     Console.WriteLine(e);
+            //     throw;
+            // }
+            
+           /*
+           * Using the new SYSTEM.NET.HTTP.JSON
+           */
+            var response = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Get, Url)); 
+            if (response.IsSuccessStatusCode)
+            {
+                var posts =  await response.Content.ReadFromJsonAsync<List<Post>>();
+                _posts = new ObservableCollection<Post>(posts); 
+                MyListView.ItemsSource = _posts;
+            }
+            
             base.OnAppearing();
         }
 
@@ -45,10 +64,31 @@ namespace XamarinRest
         /// <param name="e"></param>
         private async void OnAdd(object sender, EventArgs e)
         {
-            Post post = new Post { Title = $"Title: Timestamp {DateTime.UtcNow.Ticks}" }; //Creating a new instane of Post with a Title Property and its value in a Timestamp format
-            string content = JsonConvert.SerializeObject(post); //Serializes or convert the created Post into a JSON String
-            await _client.PostAsync(Url, new StringContent(content, Encoding.UTF8, "application/json")); //Send a POST request to the specified Uri as an asynchronous operation and with correct character encoding (utf9) and contenct type (application/json).
-            _posts.Insert(0, post); //Updating the UI by inserting an element into the first index of the collection 
+            try
+            {
+                var post = new Post { Title = $"Title: Timestamp {DateTime.UtcNow.Ticks}" }; //Creating a new instane of Post with a Title Property and its value in a Timestamp format
+                var serializedPost = JsonConvert.SerializeObject(post); //Serializes or convert the created Post into a JSON String
+                var response = await _client.PostAsync(Url, new StringContent(serializedPost, Encoding.UTF8, "application/json")); //Send a POST request to the specified Uri as an asynchronous operation and with correct character encoding (utf9) and contenct type (application/json).
+                var content = await response.Content.ReadAsStringAsync();
+                var deserializedPost = JsonConvert.DeserializeObject<Post>(content); // deserializing 
+                _posts.Insert(0, deserializedPost); //Updating the UI by inserting an element into the first index of the collection 
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                throw;
+            }
+            /*
+            * Using the new SYSTEM.NET.HTTP.JSON
+            */
+            // var post = new Post { Title = $"Title: Timestamp {DateTime.UtcNow.Ticks}" };
+            // var request = new HttpRequestMessage(HttpMethod.Post, Url)
+            // {
+            //     Content = JsonContent.Create(post)
+            // };
+            // var response = await _client.SendAsync(request);
+            // var createdPost = await response.Content.ReadFromJsonAsync<Post>(); // the created post will have an ID
+            // _posts.Insert(0, createdPost);
         }
 
         /// <summary>
@@ -58,10 +98,10 @@ namespace XamarinRest
         /// <param name="e"></param>
         private async void OnUpdate(object sender, EventArgs e)
         {
-            Post post = _posts[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
+            var post = _posts[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
             post.Title += " [updated]"; //Appending an [updated] string to the current value of the Title property
-            string content = JsonConvert.SerializeObject(post); //Serializes or convert the created Post into a JSON String
-            await _client.PutAsync(Url + "/" + post.Id, new StringContent(content, Encoding.UTF8, "application/json")); //Send a PUT request to the specified Uri as an asynchronous operation.
+            var serializedPost = JsonConvert.SerializeObject(post); //Serializes or convert the created Post into a JSON String
+            await _client.PutAsync(Url + "/" + post.Id, new StringContent(serializedPost, Encoding.UTF8, "application/json")); //Send a PUT request to the specified Uri as an asynchronous operation.
         }
 
         /// <summary>
@@ -71,8 +111,11 @@ namespace XamarinRest
         /// <param name="e"></param>
         private async void OnDelete(object sender, EventArgs e)
         {
-            Post post = _posts[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
-            await _client.DeleteAsync(Url + "/" + post.Id); //Send a DELETE request to the specified Uri as an asynchronous 
+            var post = _posts[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
+            var response = await _client.DeleteAsync(Url + "/" + post.Id); //Send a DELETE request to the specified Uri as an asynchronous 
+           
+            if (response.IsSuccessStatusCode == false) return;
+            
             _posts.Remove(post); //Removes the first occurrence of a specific object from the Post collection. This will be visible on the UI instantly
         }
     }
